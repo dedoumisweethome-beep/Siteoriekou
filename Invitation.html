@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Une surprise pour toi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Tangerine:wght@700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; min-height: 100vh;
+    background: linear-gradient(160deg, #5c1a30 0%, #3a0d1e 70%);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    color: #3a0d1e;
+    overflow-x: hidden;
+  }
+  .stage {
+    width: 100%; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px;
+    position: relative;
+  }
+  .wrap { width: 100%; max-width: 360px; text-align: center; }
+ 
+  /* GIFT BOX */
+  #giftScene { cursor: pointer; }
+  .box-outer {
+    position: relative;
+    width: 190px; height: 150px;
+    margin: 20px auto 0;
+  }
+  .box-lid {
+    position: absolute;
+    top: 0; left: -8px; right: -8px;
+    height: 46px;
+    background: linear-gradient(160deg, #8a2140, #5c1730);
+    border-radius: 8px 8px 4px 4px;
+    box-shadow: 0 6px 14px rgba(0,0,0,.35);
+    transition: transform .7s cubic-bezier(.3,1.4,.4,1), opacity .5s ease .1s;
+    z-index: 3;
+  }
+  .box-lid::after{
+    content:'';
+    position:absolute; left:50%; top:0; bottom:0;
+    width:22px; transform:translateX(-50%);
+    background: linear-gradient(180deg, #c9a15a, #e9c99a);
+  }
+  .box-body {
+    position: absolute;
+    top: 40px; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(160deg, #a3294f, #6b1e39);
+    border-radius: 6px;
+    box-shadow: 0 18px 34px rgba(0,0,0,.45);
+  }
+  .box-body::after{
+    content:'';
+    position:absolute; left:50%; top:0; bottom:0;
+    width:22px; transform:translateX(-50%);
+    background: linear-gradient(180deg, #c9a15a, #e9c99a);
+  }
+  .ribbon-bow {
+    position: absolute;
+    top: -14px; left: 50%; transform: translateX(-50%);
+    font-size: 34px;
+    z-index: 4;
+    transition: transform .5s ease, opacity .4s ease;
+  }
+ 
+  #giftScene.shaking .box-outer { animation: shake .5s ease-in-out 2; }
+  @keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-4deg); }
+    75% { transform: rotate(4deg); }
+  }
+  #giftScene.opened .box-lid {
+    transform: translateY(-90px) rotate(-18deg);
+    opacity: 0;
+  }
+  #giftScene.opened .ribbon-bow {
+    transform: translateX(-50%) translateY(-70px) scale(.6);
+    opacity: 0;
+  }
+  #questionCard {
+    background: #faf3e8;
+    border-radius: 6px;
+    padding: 38px 24px 30px;
+    box-shadow: 0 20px 45px rgba(0,0,0,.4);
+    border: 1px solid rgba(201,161,90,.4);
+    position: relative;
+    min-height: 260px;
+  }
+  #questionCard.hidden { display: none; }
+  #questionCard .script { font-size: 42px; }
+  #questionCard .lede { font-size: 14px; }
+  .question-btns {
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; margin-top: 10px; position: relative; height: 46px;
+  }
+  .no-btn {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 16px;
+    background: transparent;
+    color: #5c1a30;
+    border: 1px solid rgba(92,26,48,.35);
+    border-radius: 30px;
+    padding: 10px 22px;
+    cursor: pointer;
+    position: relative;
+    transition: transform .25s ease;
+  }
+  .no-btn.fleeing { position: absolute; }
+  .yes-btn {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+    background: #5c1a30;
+    color: #faf3e8;
+    border: none;
+    border-radius: 30px;
+    padding: 12px 30px;
+    cursor: pointer;
+    transition: transform .2s ease;
+  }
+  .yes-btn.grow { transform: scale(1.12); }
+  .teasing {
+    margin-top: 18px; font-size: 14px; font-style: italic;
+    color: #6b3347; min-height: 20px;
+  }
+ 
+  #giftScene.hidden { display: none; }
+ 
+  .hint {
+    margin-top: 18px;
+    color: #e8b4bc;
+    font-size: 15px;
+    font-style: italic;
+  }
+ 
+  /* CONFETTI */
+  .confetti {
+    position: fixed;
+    top: -20px;
+    width: 8px; height: 14px;
+    opacity: 0.95;
+    z-index: 10;
+    animation: confetti-fall linear forwards;
+  }
+  @keyframes confetti-fall {
+    to { transform: translateY(110vh) rotate(540deg); opacity: .2; }
+  }
+ 
+  /* CARD */
+  #card {
+    display: none;
+    background: #faf3e8;
+    border-radius: 6px;
+    padding: 34px 22px;
+    box-shadow: 0 20px 45px rgba(0,0,0,.4);
+    border: 1px solid rgba(201,161,90,.4);
+  }
+  #card.show { display: block; animation: card-in .6s ease; }
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(16px) scale(.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+ 
+  .eyebrow { font-size: 12px; letter-spacing: 4px; text-transform: uppercase; color: #5c1a30; opacity: .65; margin: 0 0 6px; }
+  .script { font-family: 'Tangerine', cursive; font-size: 50px; color: #5c1a30; line-height: 1; margin: 0 0 8px; }
+  .lede { font-size: 17px; font-style: italic; color: #6b3347; margin: 0 0 20px; }
+  .divider { color: #c9a15a; font-size: 14px; margin: 0 0 20px; letter-spacing: 6px; }
+  .details { margin: 0 0 24px; }
+  .detail-row { font-size: 17px; margin-bottom: 8px; }
+  .detail-row .label { display: inline-block; min-width: 62px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c9a15a; }
+  .detail-row .value { color: #3a0d1e; font-weight: 600; }
+ 
+  .time-row { margin-bottom: 8px; text-align: left; }
+  .time-row .label {
+    display: inline-block; min-width: 62px; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase; color: #c9a15a;
+    vertical-align: top; margin-top: 6px;
+  }
+  .time-options {
+    display: inline-flex; flex-wrap: wrap; gap: 8px;
+    width: calc(100% - 66px);
+  }
+  .time-btn {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 15px;
+    background: #f0e2c8;
+    color: #5c1a30;
+    border: 1px solid rgba(92,26,48,.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  .time-btn.selected {
+    background: #5c1a30;
+    color: #faf3e8;
+    border-color: #5c1a30;
+  }
+  .place-btn {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 15px;
+    background: #f0e2c8;
+    color: #5c1a30;
+    border: 1px solid rgba(92,26,48,.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  .place-btn.selected {
+    background: #5c1a30;
+    color: #faf3e8;
+    border-color: #5c1a30;
+  }
+ 
+  .word-label {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: #c9a15a; text-align: left; margin: 0 0 6px;
+  }
+  .word-input {
+    width: 100%;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 16px;
+    color: #3a0d1e;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(92,26,48,.35);
+    resize: none;
+    padding: 4px 2px 10px;
+    margin-bottom: 22px;
+    outline: none;
+  }
+  .word-input:focus { border-bottom-color: #5c1a30; }
+ 
+  .rsvp-btn {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px; background: #5c1a30; color: #faf3e8;
+    border: none; padding: 12px 30px; border-radius: 30px; cursor: pointer;
+  }
+  .rsvp-btn:disabled { opacity: .8; cursor: default; }
+ 
+  .wa-btn {
+    display: inline-block;
+    text-decoration: none;
+    margin-top: 16px;
+    background: #25923a;
+  }
+ 
+  #recapCard {
+    background: #faf3e8;
+    border-radius: 6px;
+    padding: 34px 22px;
+    box-shadow: 0 20px 45px rgba(0,0,0,.4);
+    border: 1px solid rgba(201,161,90,.4);
+    animation: card-in .6s ease;
+  }
+  #recapCard.hidden { display: none; }
+  .recap-word {
+    font-style: italic;
+    color: #6b3347;
+    font-size: 16px;
+    margin: 4px 0 20px;
+  }
+ 
+  .confirmed { display: none; margin-top: 14px; font-style: italic; color: #5c1a30; font-size: 16px; }
+  .confirmed.show { display: block; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="wrap">
+ 
+    <div id="questionCard">
+      <p class="eyebrow">Pour toi, mon amour</p>
+      <p class="script">Ça te dit un date<br>avec moi ?</p>
+      <p class="lede">(dire non ne sert à rien, mais tu peux essayer)</p>
+      <div class="question-btns">
+        <button type="button" class="no-btn" id="noBtn">Non</button>
+        <button type="button" class="yes-btn" id="yesBtn">Oui</button>
+      </div>
+      <p class="teasing" id="teasing">&nbsp;</p>
+    </div>
+ 
+    <div id="giftScene" class="hidden">
+      <div class="box-outer">
+        <div class="box-lid"></div>
+        <div class="ribbon-bow">&#127873;</div>
+        <div class="box-body"></div>
+      </div>
+      <p class="hint">touche le cadeau pour l'ouvrir</p>
+    </div>
+ 
+    <div id="card">
+      <p class="eyebrow">Rendez-vous</p>
+      <p class="script">Pour toi, mon amour</p>
+      <p class="lede">Un dîner, rien que nous deux.</p>
+      <div class="divider">&#10087;</div>
+      <div class="details">
+        <div class="detail-row"><span class="label">Date</span><span class="value">Samedi 8 Août 2026</span></div>
+        <div class="time-row">
+          <span class="label">Heure</span>
+          <div class="time-options">
+            <button type="button" class="time-btn" data-time="19h30">19h30</button>
+            <button type="button" class="time-btn" data-time="20h30">20h30</button>
+            <button type="button" class="time-btn" data-time="21h30">21h30</button>
+            <button type="button" class="time-btn" data-time="22h30">22h30</button>
+          </div>
+        </div>
+        <div class="time-row">
+          <span class="label">Lieu</span>
+          <div class="time-options">
+            <button type="button" class="place-btn" data-place="Restaurant chic">Restaurant chic</button>
+            <button type="button" class="place-btn" data-place="Restaurant chinois">Restaurant chinois</button>
+            <button type="button" class="place-btn" data-place="Fast-food">Fast-food</button>
+            <button type="button" class="place-btn" data-place="Plein-air">Plein-air</button>
+          </div>
+        </div>
+        <div class="detail-row"><span class="label">Tenue</span><span class="value">Sexy et moulante 😉</span></div>
+      </div>
+      <p class="word-label">Un mot pour moi (facultatif)</p>
+      <textarea id="wordInput" class="word-input" rows="2" placeholder="..."></textarea>
+      <button class="rsvp-btn" id="rsvpBtn">Oui, avec plaisir</button>
+    </div>
+ 
+    <div id="recapCard" class="hidden">
+      <p class="eyebrow">C'est noté</p>
+      <p class="script">À très vite</p>
+      <p class="lede">Voici notre petit récapitulatif.</p>
+      <div class="divider">&#10087;</div>
+      <div class="details">
+        <div class="detail-row"><span class="label">Date</span><span class="value">Samedi 8 Août 2026</span></div>
+        <div class="detail-row"><span class="label">Heure</span><span class="value" id="recapTime">20h30</span></div>
+        <div class="detail-row"><span class="label">Lieu</span><span class="value" id="recapPlace">Restaurant chic</span></div>
+        <div class="detail-row"><span class="label">Tenue</span><span class="value">Sexy et moulante 😉</span></div>
+      </div>
+      <p class="word-label" id="recapWord
+ 
